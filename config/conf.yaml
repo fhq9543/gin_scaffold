@@ -1,0 +1,6 @@
+PORT: 7778
+MYSQL_DSN: root:mypwd@tcp(127.0.0.1:3306)/aggregator?charset=utf8
+USER_API_HOST: xxxx
+
+QINIU_HOST: xxxx
+SSO_HOST: xxxx

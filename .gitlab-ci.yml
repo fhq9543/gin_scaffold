@@ -1,0 +1,52 @@
+stages:
+  - build_test
+  - build_production
+  - deploy_test
+  - deploy_production
+
+variables:
+  IMAGE_NAME: robo2025/replace-api
+  K8S_DEPLOY_NAME: replace-api
+  K8S_CONTAINER_NAME : replace-api
+
+build_test:
+  stage: build_test
+  only: 
+    - /^dev-.*$/
+  tags:
+    - shell-tokyo
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    - docker build --tag $IMAGE_NAME:$CI_COMMIT_TAG .
+    - docker push $IMAGE_NAME:$CI_COMMIT_TAG
+
+build_production:
+  stage: build_production
+  only: 
+    - /^release-.*$/
+  tags:
+    - shell-tokyo
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    - docker build --tag $IMAGE_NAME:$CI_COMMIT_TAG .
+    - docker push $IMAGE_NAME:$CI_COMMIT_TAG
+
+deploy_test:
+   stage: deploy_test
+   only: 
+    - /^dev-.*$/
+   tags:
+    - shell-tokyo
+   script:
+    - kubectl set image deploy $K8S_DEPLOY_NAME $K8S_CONTAINER_NAME=$IMAGE_NAME:$CI_COMMIT_TAG -n test
+    - docker rmi $IMAGE_NAME:$CI_COMMIT_TAG
+
+deploy_production:
+   stage: deploy_production
+   only: 
+    - /^release-.*$/
+   tags:
+    - shell-tokyo
+   script:
+    - kubectl set image deploy $K8S_DEPLOY_NAME $K8S_CONTAINER_NAME=$IMAGE_NAME:$CI_COMMIT_TAG -n proc
+    - docker rmi $IMAGE_NAME:$CI_COMMIT_TAG
